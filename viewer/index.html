@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex Handoff Desk</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <header>
+          <h1>Codex Handoff Desk</h1>
+          <p>Find long Codex sessions, select the useful slice, and generate a Markdown handoff for a fresh Codex chat.</p>
+          <p class="zh">查找长对话，筛选关键片段，生成可发给新 Codex 对话的 Markdown 接手卡。</p>
+        </header>
+        <div class="toolbar">
+          <button id="refreshBtn" type="button">Refresh / 刷新</button>
+          <button id="latestBtn" type="button">Open Latest / 最新</button>
+        </div>
+        <div id="sessionsMeta" class="sessions-meta">Loading sessions...</div>
+        <nav id="sessionList" class="session-list" aria-label="Sessions"></nav>
+      </aside>
+
+      <main class="workspace">
+        <section class="topbar">
+          <div>
+            <h2 id="sessionTitle">Select a session / 选择对话</h2>
+            <p id="sessionSubtitle">Newest means last active time, not the rollout file name date. 最新按最后活跃时间排序，不按文件名日期。</p>
+          </div>
+          <div class="top-actions">
+            <input id="filterInput" type="search" placeholder="Filter timeline / 筛选时间线" />
+            <div class="type-filter" aria-label="Event type filters">
+              <label><input class="typeFilterInput" type="checkbox" value="user" checked /> User</label>
+              <label><input class="typeFilterInput" type="checkbox" value="assistant" checked /> Assistant</label>
+              <label><input class="typeFilterInput" type="checkbox" value="tool-call" checked /> Tool</label>
+              <label><input class="typeFilterInput" type="checkbox" value="error" checked /> Error</label>
+            </div>
+            <button id="selectVisibleBtn" type="button" disabled>Select Visible / 选择可见</button>
+            <button id="clearSelectionBtn" type="button" disabled>Clear / 清空</button>
+            <button id="handoffBtn" type="button" disabled>Generate Handoff / 生成接手卡</button>
+            <button id="exportBtn" type="button" disabled>Export HTML / 导出回放</button>
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="Session metrics">
+          <div><b id="metricEvents">0</b><span>Events / 事件</span></div>
+          <div><b id="metricUsers">0</b><span>User turns / 用户</span></div>
+          <div><b id="metricTools">0</b><span>Tool calls / 工具</span></div>
+          <div><b id="metricErrors">0</b><span>Errors / 错误</span></div>
+        </section>
+
+        <section id="timeline" class="timeline" aria-live="polite">
+          <div class="empty">No session loaded yet. 尚未加载对话。</div>
+        </section>
+      </main>
+
+      <aside class="inspector">
+        <section class="panel">
+          <h3>Privacy Scan / 隐私扫描</h3>
+          <p class="hint">Raw patterns found before redaction. Use this before posting logs to GitHub issues. 分享前先看这里。</p>
+          <dl class="risk-list">
+            <div><dt>Local paths / 本地路径</dt><dd id="riskPaths">0</dd></div>
+            <div><dt>Tokens / Token</dt><dd id="riskTokens">0</dd></div>
+            <div><dt>Emails / 邮箱</dt><dd id="riskEmails">0</dd></div>
+            <div><dt>Private hosts / 内部主机</dt><dd id="riskHosts">0</dd></div>
+          </dl>
+        </section>
+        <section class="panel">
+          <h3>What This Is For / 核心用途</h3>
+          <p class="hint">Use it to answer: which Codex thread was this, what matters now, and what should a new Codex continue? 用来解决长任务卡住、上下文丢失、跨窗口接手。</p>
+        </section>
+        <section class="panel">
+          <h3>Session Details / 对话信息</h3>
+          <dl class="meta-list">
+            <dt>Short ID / 短 ID</dt><dd id="metaShortId">-</dd>
+            <dt>Started / 创建</dt><dd id="metaStarted">-</dd>
+            <dt>Model</dt><dd id="metaModel">-</dd>
+            <dt>CWD</dt><dd id="metaCwd">-</dd>
+            <dt>Source / 来源</dt><dd id="metaSource">-</dd>
+            <dt>Updated / 更新</dt><dd id="metaUpdated">-</dd>
+          </dl>
+        </section>
+        <section class="panel">
+          <h3>Handoff / 接手卡</h3>
+          <p id="handoffStatus" class="hint">Select timeline cards, then generate a compact Markdown task card. 勾选片段后生成可交给新 Codex 的 Markdown。</p>
+        </section>
+        <section class="panel">
+          <h3>Export Replay / 导出回放</h3>
+          <p id="exportStatus" class="hint">Export creates a static HTML replay under output/. 用于复盘，不是主要接手格式。</p>
+        </section>
+      </aside>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
