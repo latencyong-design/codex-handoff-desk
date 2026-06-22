@@ -1,0 +1,30 @@
+{
+  "name": "codex-handoff-desk",
+  "version": "0.1.0",
+  "description": "Find Codex sessions and generate compact Markdown handoffs for long or stuck tasks.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/latencyong-design/codex-handoff-desk.git"
+  },
+  "keywords": [
+    "codex",
+    "handoff",
+    "agent",
+    "jsonl",
+    "session",
+    "continuity"
+  ],
+  "bin": {
+    "codex-handoff-desk": "./bin/codex-replay.js",
+    "codex-replay": "./bin/codex-replay.js"
+  },
+  "scripts": {
+    "replay": "node ./bin/codex-replay.js",
+    "latest": "node ./bin/codex-replay.js --latest",
+    "viewer": "node ./server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
