@@ -129,6 +129,10 @@ function isNoiseUserText(text) {
   return false;
 }
 
+function displaySessionSource(filePath) {
+  return "<session>";
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -197,7 +201,7 @@ async function parseSession(inputPath, options) {
     cwd: "",
     model: "",
     originator: "",
-    source: inputPath,
+    source: displaySessionSource(inputPath),
     lastWrite: fs.statSync(inputPath).mtime,
     size: fs.statSync(inputPath).size
   };
@@ -342,7 +346,7 @@ function renderHtml(result, options, inputPath) {
     cwd: redact(meta.cwd || ""),
     model: redact(meta.model || ""),
     originator: redact(meta.originator || ""),
-    source: redact(inputPath),
+    source: displaySessionSource(inputPath),
     generated: new Date().toISOString(),
     lastWrite: meta.lastWrite.toISOString(),
     sizeMb: (meta.size / 1024 / 1024).toFixed(2)

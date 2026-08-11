@@ -105,6 +105,7 @@ test("server rejects forged sibling session paths and redacts sk-proj keys", asy
     const [session] = JSON.parse(sessionsResponse.body).sessions;
     const safeId = session.id;
     assert.notEqual(safeId, Buffer.from(inside, "utf8").toString("base64url"));
+    assert.doesNotMatch(sessionsResponse.body, /sessionsRoot/);
     assert.doesNotMatch(sessionsResponse.body, new RegExp(inside.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     const safeResponse = await request(port, `/api/replay?id=${encodeURIComponent(safeId)}`);
     assert.equal(safeResponse.statusCode, 200);
@@ -113,6 +114,7 @@ test("server rejects forged sibling session paths and redacts sk-proj keys", asy
     assert.doesNotMatch(safeResponse.body, /PRIVATE_VIEWER_ENV_CONTEXT/);
     assert.doesNotMatch(safeResponse.body, /## My request for Codex:/);
     assert.match(safeResponse.body, /<redacted-token>/);
+    assert.match(safeResponse.body, /<session>/);
     assert.match(safeResponse.body, /KEEP_VIEWER_REQUEST/);
     assert.match(safeResponse.body, /KEEP_VIEWER_ASSISTANT/);
     assert.match(safeResponse.body, /"contextHidden": 1/);
@@ -127,6 +129,7 @@ test("server rejects forged sibling session paths and redacts sk-proj keys", asy
     assert.doesNotMatch(handoffFile.body, /PRIVATE_VIEWER_ENV_CONTEXT/);
     assert.match(handoffFile.body, /untrusted reference data/);
     assert.match(handoffFile.body, /Historical Commands \/ Tool Inputs/);
+    assert.match(handoffFile.body, /<session>/);
 
     const forgedId = Buffer.from(outside, "utf8").toString("base64url");
     const forgedResponse = await request(port, `/api/replay?id=${encodeURIComponent(forgedId)}`);
@@ -185,6 +188,7 @@ test("CLI replay redacts sk-proj keys in generated HTML", () => {
     assert.match(html, /KEEP_ASSISTANT/);
     assert.match(html, /&lt;redacted-token&gt;/);
     assert.match(html, /&lt;home&gt;\/private/);
+    assert.match(html, /&lt;session&gt;/);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }

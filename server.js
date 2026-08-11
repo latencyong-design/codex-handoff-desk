@@ -44,6 +44,10 @@ function isPathInside(root, target) {
   return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
 }
 
+function displaySessionSource(filePath) {
+  return "<session>";
+}
+
 function pathForId(id) {
   const issuedPath = sessionPaths.get(id);
   if (!issuedPath) throw new Error("Unknown session ID. Refresh the session list and try again.");
@@ -296,7 +300,7 @@ async function collectHandoff(filePath, selectedIndices = []) {
     lastWrite: stat.mtime.toISOString(),
     model: "",
     cwd: "",
-    source: redact(filePath)
+    source: displaySessionSource(filePath)
   };
   const handoff = {
     currentGoal: "",
@@ -510,7 +514,7 @@ async function parseSession(filePath) {
     model: "",
     cwd: "",
     originator: "",
-    source: redact(filePath),
+    source: displaySessionSource(filePath),
     size: stat.size,
     lastWrite: stat.mtime.toISOString()
   };
@@ -648,12 +652,11 @@ async function handleApi(req, res) {
           name: item.name,
           size: item.size,
           mtime: item.mtime,
-          path: redact(item.path),
           model: summary.model,
           cwd: summary.cwd
         };
       });
-      return json(res, 200, { sessionsRoot: redact(SESSIONS_ROOT), sessions });
+      return json(res, 200, { sessions });
     }
     if (url.pathname === "/api/replay") {
       const id = url.searchParams.get("id");
