@@ -31,11 +31,16 @@ function idForPath(filePath) {
   return Buffer.from(filePath, "utf8").toString("base64url");
 }
 
+function isPathInside(root, target) {
+  const relative = path.relative(root, target);
+  return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
+}
+
 function pathForId(id) {
   const decoded = Buffer.from(id, "base64url").toString("utf8");
   const resolved = path.resolve(decoded);
   const root = path.resolve(SESSIONS_ROOT);
-  if (!resolved.startsWith(root)) {
+  if (!isPathInside(root, resolved)) {
     throw new Error("Session path is outside sessions root");
   }
   return resolved;
@@ -200,10 +205,10 @@ function summarizeSession(filePath, stat) {
     const text = textFromContent(payload.content);
     if (role === "user" && !isNoiseUserText(text)) {
       summary.lastUser = cleanUserText(text);
-      summary.title = compactTitle(summary.lastUser);
+      summary.title = redact(compactTitle(summary.lastUser));
     } else if (role === "assistant" && text.trim()) {
       summary.lastAssistant = text;
-      if (!summary.title) summary.title = compactTitle(text);
+      if (!summary.title) summary.title = redact(compactTitle(text));
     }
   }
 
@@ -362,7 +367,7 @@ async function collectHandoff(filePath, selectedIndices = []) {
     }
   }
 
-  meta.title = compactTitle(handoff.currentGoal || handoff.recentAssistantNotes[handoff.recentAssistantNotes.length - 1] || meta.id || path.basename(filePath));
+  meta.title = redact(compactTitle(handoff.currentGoal || handoff.recentAssistantNotes[handoff.recentAssistantNotes.length - 1] || meta.id || path.basename(filePath)));
   return { meta, handoff, selection: { enabled: hasSelection, count: selectedSet.size } };
 }
 
@@ -558,7 +563,7 @@ async function parseSession(filePath) {
     }
   }
 
-  meta.title = compactTitle(lastMeaningfulUser || lastAssistant || meta.id || path.basename(filePath));
+  meta.title = redact(compactTitle(lastMeaningfulUser || lastAssistant || meta.id || path.basename(filePath)));
   meta.shortId = shortSessionId(filePath, meta.id);
   meta.startedAt = startedFromName(filePath);
 
@@ -582,7 +587,7 @@ function serveStatic(req, res) {
   const urlPath = new URL(req.url, `http://${HOST}:${PORT}`).pathname;
   const file = urlPath === "/" ? "index.html" : urlPath.slice(1);
   const resolved = path.resolve(VIEWER_DIR, file);
-  if (!resolved.startsWith(VIEWER_DIR)) return notFound(res);
+  if (!isPathInside(VIEWER_DIR, resolved)) return notFound(res);
   fs.readFile(resolved, (error, data) => {
     if (error) return notFound(res);
     const ext = path.extname(resolved);
@@ -656,7 +661,7 @@ async function handleApi(req, res) {
     if (url.pathname.startsWith("/output/")) {
       const fileName = path.basename(decodeURIComponent(url.pathname.slice("/output/".length)));
       const resolved = path.resolve(OUTPUT_DIR, fileName);
-      if (!resolved.startsWith(OUTPUT_DIR)) return notFound(res);
+      if (!isPathInside(OUTPUT_DIR, resolved)) return notFound(res);
       fs.readFile(resolved, (error, data) => {
         if (error) return notFound(res);
         const type = path.extname(resolved).toLowerCase() === ".md" ? "text/markdown" : "text/html";

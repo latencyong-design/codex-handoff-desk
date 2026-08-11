@@ -22,7 +22,8 @@
   "scripts": {
     "replay": "node ./bin/codex-replay.js",
     "latest": "node ./bin/codex-replay.js --latest",
-    "viewer": "node ./server.js"
+    "viewer": "node ./server.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"
