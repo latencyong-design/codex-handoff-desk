@@ -108,6 +108,27 @@ function oneLine(text, limit = 160) {
   return `${clean.slice(0, limit - 1)}…`;
 }
 
+function cleanUserText(text) {
+  let value = String(text || "").trim();
+  const requestMarker = "## My request for Codex:";
+  const markerIndex = value.indexOf(requestMarker);
+  if (markerIndex >= 0) value = value.slice(markerIndex + requestMarker.length).trim();
+  value = value.replace(/<image\b[\s\S]*?<\/image>/gi, "").trim();
+  value = value.replace(/^# Files mentioned by the user:[\s\S]*?(?=\n\S|\n*$)/i, "").trim();
+  return value || String(text || "").trim();
+}
+
+function isNoiseUserText(text) {
+  const value = cleanUserText(text);
+  if (!value) return true;
+  if (value.startsWith("# AGENTS.md instructions")) return true;
+  if (value.startsWith("<environment_context>")) return true;
+  if (value.startsWith("<developer_context>")) return true;
+  if (value.includes("<INSTRUCTIONS>") && value.length > 1200) return true;
+  if (value.includes("Default response mode:") && value.includes("Preferred style:") && value.length > 1200) return true;
+  return false;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -122,6 +143,7 @@ function redact(text) {
   const home = os.homedir().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   out = out.replace(new RegExp(home, "gi"), "<home>");
   out = out.replace(/C:\\+Users\\+[^\\\s`"']+/gi, "<home>");
+  out = out.replace(/[A-Z]:\/Users\/[^\/\s`"']+/gi, "<home>");
   out = out.replace(/\/Users\/[^\/\s`"']+/g, "<home>");
   out = out.replace(/\/home\/[^\/\s`"']+/g, "<home>");
   out = out.replace(/\b(?:ghp|github_pat|sk|xoxb|xoxp|hf)[_-][A-Za-z0-9_=-]{16,}\b/g, "<redacted-token>");
@@ -244,14 +266,16 @@ async function parseSession(inputPath, options) {
 
     if (payload.type === "message") {
       const role = payload.role || "message";
-      if (!["user", "assistant", "developer"].includes(role)) continue;
+      if (!["user", "assistant"].includes(role)) continue;
       const text = textFromContent(payload.content);
       if (!text.trim()) continue;
+      if (role === "user" && isNoiseUserText(text)) continue;
+      const displayText = role === "user" ? cleanUserText(text) : text;
       counts[role] = (counts[role] || 0) + 1;
       addEvent(events, {
         kind: role,
         time: eventTime(record, payload),
-        text: oneLine(text, role === "assistant" ? 2200 : 1600)
+        text: oneLine(displayText, role === "assistant" ? 2200 : 1600)
       });
       continue;
     }

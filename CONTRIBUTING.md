@@ -18,6 +18,7 @@ Before opening a PR:
 node --check .\server.js
 node --check .\viewer\app.js
 node --check .\bin\codex-replay.js
+npm test
 ```
 
 Do not commit real Codex session logs, generated handoff files, local paths, tokens, or private project data.
@@ -40,6 +41,7 @@ Do not commit real Codex session logs, generated handoff files, local paths, tok
 node --check .\server.js
 node --check .\viewer\app.js
 node --check .\bin\codex-replay.js
+npm test
 ```
 
 不要提交真实 Codex session 日志、生成的 handoff、本地路径、token 或私有项目数据。
